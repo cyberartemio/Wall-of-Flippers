@@ -246,6 +246,7 @@ async def detection_async(os_param:str, detection_type=0): # renamed 'os' and 't
             cache.wof_data['bool_isScanning'] = False
         sort_packets(ble_packets)
     except Exception as e:
+        cache.wof_data['bool_isScanning'] = False
         library.print_ascii_art("Error: Failed to scan for BLE devices")
         print("[!] Wall of Flippers >> Error: Failed to scan for BLE devices >> " + str(e))
 
