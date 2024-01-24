@@ -57,7 +57,8 @@
     	- [Fedora Install](#fedora_install)
     	- [Arch Linux Install (SOON)](#arch_install)
     	- [PinePhone Install (SOON)](#pinephone_install)
-  	    - [Windows Install](#windows_install)
+    	- [Windows Install](#windows_install)
+    	- [Pwnagotchi Install](#pwnagotchi-install-guide)
 - [Issues and Fixes](#doc_issues_and_fixes)
 - [Common Errors and Fixes](#doc_c_and_e)
 - [Notice](#doc_statement)
@@ -299,7 +300,73 @@ https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-interna
 
 </details>
 
+<details>
+<summary>Pwnagotchi Install Guide</summary>
+
+### Pwnagotchi Install Guide
+> You can run Wall of Flippers on Pwnagotchi to scan and save flippers data that your little friend find near them.
+
+#### Step 1 (One): Clone the repo
+> Login as `root` on your Pwnagotchi and run:
+```shell
+cd /root && git clone https://www.github.com/K3YOMI/Wall-of-Flippers && cd Wall-of-Flippers
+```
+
+#### Step 2 (Two): Install Python dependencies
+> Create virtual environment and install Python dependencies.
+``` shell
+python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && deactivate
+```
+
+#### Step 3 (Three): Systemd daemon
+> Create the systemd service in `/etc/systemd/system/wof.service`.
+```
+[Unit]
+Description=WallofFlippers - A simple and easy way to find Flipper Zero Devices and Bluetooth Low Energy Based Attacks
+
+[Service]
+ExecStart=/root/Wall-of-Flippers/.venv/bin/python /root/Wall-of-Flippers/WallofFlippers.py --no-ui wof -d 0
+WorkingDirectory=/root/Wall-of-Flippers/
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=wof
+User=root
+Group=root
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target
+```
+
+> Then run:
+```
+systemctl daemon-reload
+```
+
+#### Step 4 (Four): Start daemon
+> To start Wall of Flippers daemon, run:
+```
+systemctl start wof
+```
+
+> If you want to start the daemon on boot, run:
+```
+systemctl enable wof
+```
+
+> Once you start the daemon, Wall of Flippers should be running and scanning for nearby Flippers. You can check the status by running:
+```
+systemctl status wof
+```
+
+#### Step 5 (Five): Install plugin (optional)
+
+> If you want to see the data of Wall of Flippers on you Pwnagotchi screen, install CyberArtemio's `wof-pwnagotchi-plugin`. Follow the installation steps [here](https://github.com/cyberartemio/wof-pwnagotchi-plugin#-installation).
+
+</details>
+
 # Issues and Fixes <a name = "doc_issues_and_fixes"></a>
+
 > If you encounter any issues or bugs, please report them to us on our github page. We will try our best to fix them as soon as possible. If you would like to contribute to the project, please feel free to make a pull request. We will review it and merge it if it is a good addition to the project. We will be starting a discord server soon for support and development. Please keep an eye out for that. Thank you for your support and we hope you enjoy this project! <3
 
 

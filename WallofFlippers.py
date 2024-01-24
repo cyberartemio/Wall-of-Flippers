@@ -29,8 +29,7 @@ import shutil
 import time
 import asyncio
 import json
-import random
-
+import argparse
 
 # Wall of Flippers Imports
 import utils.wof_cache as cache # for important configurations and data :3
@@ -166,7 +165,6 @@ def sort_packets(ble_packets:list):
         print("[!] Wall of Flippers >> Error: Type not supported")
     cache.wof_data['bool_isScanning'] = False
 
-
 async def detection_async(os_param:str, detection_type=0): # renamed 'os' and 'type' to avoid conflict with built-in functions. Feel free to change it to something more appropriate as I'm not exactly sure what they do
     """BLE detection"""
     try:
@@ -254,18 +252,33 @@ async def detection_async(os_param:str, detection_type=0): # renamed 'os' and 't
 
 # Start of the program
 library.check_json_file_exist()
-os.system('cls' if os.name == 'nt' else 'clear')
+# Command args parsing 
+parser = argparse.ArgumentParser(prog = "WallofFlippers.py")
+base_parser = argparse.ArgumentParser(add_help=False)
+subparsers = parser.add_subparsers(dest="action", help="Skip interactive ui and just run selected mode")
+parser.add_argument('--no-ui', action="store_true", default=False, help="Disable ui")
+wof_parser = subparsers.add_parser("wof", help="Run WoF: scan for nearby online flippers", parents=[base_parser])
+wof_parser.add_argument("-d", "--device", help="Index of HCI device to use for scanning", required=True)
+
+args = parser.parse_args()
+
+cache.wof_data['no_ui'] = args.no_ui
+
+if not cache.wof_data['no_ui']:
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 cache.wof_data['system_type'] = os.name
+
 if cache.wof_data['system_type'] == "posix": # Linux Auto Install
     if not os.path.exists(".venv/bin/activate"): # Check if the user has setup their virtual environment
         library.print_ascii_art("Uh oh, it seems like you have not setup your virtual environment yet!")
         print("[!] Wall of Flippers >> It seems like you have not setup your virtual environment yet.\n\t      Reason: .venv/bin/activate does not exist.")
-        print("[!] Wall of Flippers >> Would you like to setup your virtual environment now?")
-        if input("[?] Wall of Flippers (Y/N) >> ").lower() == "y":
-            os.system("python3 -m venv .venv")
-            print("[!] Wall of Flippers >> Virtual environment setup successfully!")
-            sys.exit()
+        if not cache.wof_data['no_ui']:
+            print("[!] Wall of Flippers >> Would you like to setup your virtual environment now?")
+            if input("[?] Wall of Flippers (Y/N) >> ").lower() == "y":
+                os.system("python3 -m venv .venv")
+                print("[!] Wall of Flippers >> Virtual environment setup successfully!")
+                sys.exit()
     if library.is_in_venv() == False: # Check if the user is in their virtual environment
         library.print_ascii_art("Uh oh, it seems like you are not in your virtual environment!")
         print("[!] Wall of Flippers >> It seems like you are not in your virtual environment. Please use the following command to enter your virtual environment.")
@@ -273,7 +286,19 @@ if cache.wof_data['system_type'] == "posix": # Linux Auto Install
         print("\tor")
         print("\tbash wof.sh")
         sys.exit()
-selection_box = library.init()
+
+if args.action == "wof":
+    selection_box = "wall_of_flippers"
+    device_hci = args.device
+    # Check that specified device is existing on the system
+    if cache.wof_data['system_type'] == "posix" and not device_hci in [str(index) for index, adapter in enumerate(os.listdir('/sys/class/bluetooth/')) if 'hci' in adapter]:
+        print("Unknown HCI device, select an existing system device")
+        sys.exit(1)
+elif args.action is None:
+    # If no action is specified, run interactive selection
+    selection_box = library.init()
+    device_hci = None
+
 if selection_box in ("wall_of_flippers", "capture_the_flippers"):
     try:
         import requests
@@ -285,6 +310,7 @@ if selection_box in ("wall_of_flippers", "capture_the_flippers"):
         library.print_ascii_art("Error: Failed to import dependencies")
         print(f"[!] Wall of Flippers >> Failed to import dependencies >> {e}")
         sys.exit()
+
 if selection_box == 'wall_of_flippers':
     print("[!] Wall of Flippers >> Starting Wall of Flippers")
     if cache.wof_data['system_type'] == "posix" and not os.geteuid() == 0:
@@ -292,26 +318,30 @@ if selection_box == 'wall_of_flippers':
         print("[!] Wall of Flippers >> I require root privileges to run.\n\t      Reason: Dependency on bluepy library.")
         sys.exit()
     try:
-        ble_adapters = []
-        if cache.wof_data['system_type'] == "posix":
-            ble_adapters = [adapter for adapter in os.listdir('/sys/class/bluetooth/') if 'hci' in adapter]
-            # make a selection of the bluetooth adapter
-            print("\n\n[#]\t[HCI DEVICE]")
-            print("-"*shutil.get_terminal_size().columns)
-            for adapter in ble_adapters:
-                print(f"{ble_adapters.index(adapter)}".ljust(8) + f"{adapter}".ljust(34))
-            DEVIC_HCI = input("[?] Wall of Flippers >> ")
-        else:
-            DEVIC_HCI = 0
-        wall_display.display("Thank you for using Wall of Flippers")
+        if device_hci is None: # device_hci is already set if wof is runned using args
+            if cache.wof_data['system_type'] == "posix":
+                ble_adapters = [adapter for adapter in os.listdir('/sys/class/bluetooth/') if 'hci' in adapter]
+                # make a selection of the bluetooth adapter
+                print("\n\n[#]\t[HCI DEVICE]")
+                print("-"*shutil.get_terminal_size().columns)
+                for adapter in ble_adapters:
+                    print(f"{ble_adapters.index(adapter)}".ljust(8) + f"{adapter}".ljust(34))
+                device_hci = input("[?] Wall of Flippers >> ")
+            else:
+                device_hci = 0
+            wall_display.display("Thank you for using Wall of Flippers")
+
         while True:
             if not cache.wof_data['bool_isScanning']:
-                asyncio.run(detection_async(cache.wof_data['system_type'],DEVIC_HCI))
+                asyncio.run(detection_async(cache.wof_data['system_type'], device_hci))
             time.sleep(1)
     except KeyboardInterrupt:
-        library.print_ascii_art("Thank you for using Wall of Flippers... Goodbye!")
-        print("\n[!] Wall of Flippers >> Exiting...")
+        if not cache.wof_data['no_ui']:
+            library.print_ascii_art("Thank you for using Wall of Flippers... Goodbye!")
+            print("\n")
+        print("[!] Wall of Flippers >> Exiting...")
         sys.exit()
+
 if selection_box == 'capture_the_flippers': # todo: needs to be updated for narrow mode compatibility
     import utils.wof_capture as wall_capture # Wall of Flippers "capture" for important functions and classes :3
     if cache.wof_data['system_type'] == "posix" and os.geteuid() != 0:
@@ -391,5 +421,6 @@ if selection_box == 'capture_the_flippers': # todo: needs to be updated for narr
 
 if selection_box == 'advertise_bluetooth_packets':
     ble_exploitation.init()
+
 if selection_box == 'install_dependencies':
     installer.init()

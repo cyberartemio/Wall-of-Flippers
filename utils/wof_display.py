@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 #                               YAao,                            
 #                                 Y8888b,                        Created By: Kiyomi + Emilia (jbohack)
 #                               ,oA8888888b,                     Emilia: https://ko-fi.com/emilia0001
@@ -24,15 +22,13 @@
 
 # Standard library Imports
 import json
-import os
 import shutil
 
 # Wall of Flippers "library" for important functions and classes :3
 import utils.wof_cache as cache # Wall of Flippers "cache" for important configurations and data :3
 import utils.wof_library as library # Wall of Flippers "library" for important functions and classes :3
 
-
-def display(custom_text:str=None):
+def __update_screen(custom_text=None):
     """displays the data in a nice format"""
 
     # Load flipper data from Flipper.json
@@ -185,3 +181,29 @@ def display(custom_text:str=None):
     cache.wof_data['all_packets_found'] = []
     cache.wof_data['duplicated_packets'] = []
     cache.wof_data['base_flippers'] = []
+
+last_log_online_flippers = [] # MAC addresses of Flippers that were online in the last log
+def __log():
+    global last_log_online_flippers
+    online_flippers = [ flipper for flipper in cache.wof_data["found_flippers"] if flipper["MAC"] in cache.wof_data["live_flippers"] and flipper["MAC"] not in last_log_online_flippers ]
+    offline_flippers = [ flipper for flipper in cache.wof_data["found_flippers"] if flipper["MAC"] not in cache.wof_data["live_flippers"] and flipper["MAC"] in last_log_online_flippers ]
+    
+    for flipper in online_flippers:
+        print(f'[!] Wall of Flippers >> {flipper["Name"]} [{flipper["MAC"]}] is online')
+    for flipper in offline_flippers:
+        print(f'[!] Wall of Flippers >> {flipper["Name"]} [{flipper["MAC"]}] is offline')
+
+    cache.wof_data['display_live'] = []
+    cache.wof_data['display_offline'] = []
+    last_log_online_flippers = cache.wof_data['live_flippers']
+    cache.wof_data['live_flippers'] = []
+    cache.wof_data['forbidden_packets_found'] = []
+    cache.wof_data['all_packets_found'] = []
+    cache.wof_data['duplicated_packets'] = []
+    cache.wof_data['base_flippers'] = []
+
+def display(custom_text:str=None):
+    if not cache.wof_data['no_ui']:
+        __update_screen(custom_text=custom_text)
+    else:
+        __log()

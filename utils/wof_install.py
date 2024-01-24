@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 #                               YAao,                            
 #                                 Y8888b,                        Created By: Kiyomi + Emilia (jbohack)
 #                               ,oA8888888b,                     Emilia: https://ko-fi.com/emilia0001
@@ -23,7 +21,6 @@
 
 
 # Standard library Imports
-import platform
 import os
 import sys
 import json
