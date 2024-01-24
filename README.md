@@ -345,20 +345,23 @@ python WallofFlippers.py
 ### Pwnagotchi Install Guide
 > You can run Wall of Flippers on Pwnagotchi to scan and save flippers data that your little friend find near them.
 
-#### Step 1 (One): Clone the repo
+#### Step 1: Clone the repo
 > Login as `root` on your Pwnagotchi and run:
-```shell
+
+```sh
 cd /root && git clone https://www.github.com/K3YOMI/Wall-of-Flippers && cd Wall-of-Flippers
 ```
 
-#### Step 2 (Two): Install Python dependencies
+#### Step 2: Install Python dependencies
 > Create virtual environment and install Python dependencies.
-``` shell
+
+``` sh
 python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && deactivate
 ```
 
-#### Step 3 (Three): Systemd daemon
+#### Step 3: Systemd daemon
 > Create the systemd service in `/etc/systemd/system/wof.service`.
+
 ```
 [Unit]
 Description=WallofFlippers - A simple and easy way to find Flipper Zero Devices and Bluetooth Low Energy Based Attacks
@@ -378,27 +381,31 @@ WantedBy=multi-user.target
 ```
 
 > Then run:
-```
+
+```sh
 systemctl daemon-reload
 ```
 
-#### Step 4 (Four): Start daemon
+#### Step 4: Start daemon
 > To start Wall of Flippers daemon, run:
-```
+
+```sh
 systemctl start wof
 ```
 
 > If you want to start the daemon on boot, run:
-```
+
+```sh
 systemctl enable wof
 ```
 
 > Once you start the daemon, Wall of Flippers should be running and scanning for nearby Flippers. You can check the status by running:
-```
+
+```sh
 systemctl status wof
 ```
 
-#### Step 5 (Five): Install plugin (optional)
+#### Step 5: Install plugin (optional)
 
 > If you want to see the data of Wall of Flippers on you Pwnagotchi screen, install CyberArtemio's `wof-pwnagotchi-plugin`. Follow the installation steps [here](https://github.com/cyberartemio/wof-pwnagotchi-plugin#-installation).
 
