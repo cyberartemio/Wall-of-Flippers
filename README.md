@@ -349,7 +349,7 @@ python WallofFlippers.py
 > Login as `root` on your Pwnagotchi and run:
 
 ```sh
-cd /root && git clone https://www.github.com/K3YOMI/Wall-of-Flippers && cd Wall-of-Flippers
+cd /root && git clone https://www.github.com/cyberartemio/Wall-of-Flippers && cd Wall-of-Flippers
 ```
 
 #### Step 2: Install Python dependencies
